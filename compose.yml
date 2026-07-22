@@ -1,0 +1,5 @@
+services:
+  external-services:
+    build: .
+    ports:
+      - "7070:7070"
