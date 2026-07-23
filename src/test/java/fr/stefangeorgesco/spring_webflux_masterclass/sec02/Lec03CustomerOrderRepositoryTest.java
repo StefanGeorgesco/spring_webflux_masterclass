@@ -1,5 +1,6 @@
 package fr.stefangeorgesco.spring_webflux_masterclass.sec02;
 
+import fr.stefangeorgesco.spring_webflux_masterclass.sec02.dto.OrderDetails;
 import fr.stefangeorgesco.spring_webflux_masterclass.sec02.entity.Product;
 import fr.stefangeorgesco.spring_webflux_masterclass.sec02.repository.CustomerOrderRepository;
 import org.junit.jupiter.api.Test;
@@ -22,6 +23,16 @@ class Lec03CustomerOrderRepositoryTest extends AbstractTest {
                 .map(Product::getDescription)
                 .as(StepVerifier::create)
                 .expectNext("iphone 20", "mac pro")
+                .verifyComplete();
+    }
+
+    @Test
+    void testGetOrderDetailsByProductDescription() {
+        this.customerOrderRepository.getOrderDetailsByProductDescription("iphone 18")
+                .doOnNext(orderDetails -> log.info("Order details for iphone 18: {}", orderDetails))
+                .map(OrderDetails::amount)
+                .as(StepVerifier::create)
+                .expectNext(850, 775, 750)
                 .verifyComplete();
     }
 }
