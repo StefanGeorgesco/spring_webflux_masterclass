@@ -24,7 +24,7 @@ public class TraditionalWebController {
     @GetMapping("products")
     public List<Product> getProducts() {
         List<Product> list = this.restClient.get()
-                .uri("/demo01/products")
+                .uri("/demo01/products/notorious")
                 .retrieve()
                 .body(new ParameterizedTypeReference<>() {
                 });
