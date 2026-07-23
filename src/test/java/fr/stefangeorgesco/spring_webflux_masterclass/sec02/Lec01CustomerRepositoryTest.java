@@ -57,7 +57,7 @@ class Lec01CustomerRepositoryTest extends AbstractTest {
     }
 
     @Test
-    void insertAndDeleteCustomer() {
+    void testInsertAndDeleteCustomer() {
         // insert
         Customer customer = new Customer();
         customer.setName("marshal");
@@ -80,6 +80,17 @@ class Lec01CustomerRepositoryTest extends AbstractTest {
                 .then(this.customerRepository.count())
                 .as(StepVerifier::create)
                 .expectNext(10L)
+                .verifyComplete();
+    }
+
+    @Test
+    void testUpdateCustomer() {
+        this.customerRepository.findByName("ethan")
+                .doOnNext(customer -> customer.setName("noel"))
+                .flatMap(this.customerRepository::save)
+                .doOnNext(updatedCustomer -> log.info("afterUpdateCustomer: {}", updatedCustomer))
+                .as(StepVerifier::create)
+                .assertNext(updatedCustomer -> assertEquals("noel", updatedCustomer.getName()))
                 .verifyComplete();
     }
 }
