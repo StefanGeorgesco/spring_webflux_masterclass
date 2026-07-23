@@ -2,6 +2,7 @@ package fr.stefangeorgesco.spring_webflux_masterclass.sec01;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -23,6 +24,17 @@ public class ReactiveWebController {
                 .uri("/demo01/products")
                 .retrieve()
                 .bodyToFlux(Product.class)
-                .doOnNext(product -> log.info("ReactiveWebController.getProducts() received : {}", product));
+                .doOnNext(product -> log.info("ReactiveWebController.getProducts() received : {}",
+                        product));
+    }
+
+    @GetMapping(value = "products/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public Flux<Product> getProductsStream() {
+        return this.webClient.get()
+                .uri("/demo01/products")
+                .retrieve()
+                .bodyToFlux(Product.class)
+                .doOnNext(product -> log.info("ReactiveWebController.getProductsStream() received : {}",
+                        product));
     }
 }
