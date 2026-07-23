@@ -1,5 +1,6 @@
 package fr.stefangeorgesco.spring_webflux_masterclass.sec02;
 
+import fr.stefangeorgesco.spring_webflux_masterclass.sec02.entity.Customer;
 import fr.stefangeorgesco.spring_webflux_masterclass.sec02.repository.CustomerRepository;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -8,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import reactor.test.StepVerifier;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 
 class Lec01CustomerRepositoryTest extends AbstractTest {
@@ -51,6 +53,33 @@ class Lec01CustomerRepositoryTest extends AbstractTest {
                 .as(StepVerifier::create)
                 .assertNext(customer -> assertEquals("mike", customer.getName()))
                 .assertNext(customer -> assertEquals("jake", customer.getName()))
+                .verifyComplete();
+    }
+
+    @Test
+    void insertAndDeleteCustomer() {
+        // insert
+        Customer customer = new Customer();
+        customer.setName("marshal");
+        customer.setEmail("marshal@gmail.com");
+        this.customerRepository.save(customer)
+                .doOnNext(savedCustomer -> log.info("insertedCustomer: {}", savedCustomer))
+                .as(StepVerifier::create)
+                .assertNext(savedCustomer -> assertNotNull(savedCustomer.getId()))
+                .verifyComplete();
+
+        // count
+        this.customerRepository.count()
+                .doOnNext(count -> log.info("countCustomer: {}", count))
+                .as(StepVerifier::create)
+                .expectNext(11L)
+                .verifyComplete();
+
+        // delete
+        this.customerRepository.deleteById(11)
+                .then(this.customerRepository.count())
+                .as(StepVerifier::create)
+                .expectNext(10L)
                 .verifyComplete();
     }
 }
