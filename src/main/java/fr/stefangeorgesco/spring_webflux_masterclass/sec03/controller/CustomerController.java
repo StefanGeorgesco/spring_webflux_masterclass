@@ -2,6 +2,7 @@ package fr.stefangeorgesco.spring_webflux_masterclass.sec03.controller;
 
 import fr.stefangeorgesco.spring_webflux_masterclass.sec03.dto.CustomerDto;
 import fr.stefangeorgesco.spring_webflux_masterclass.sec03.service.CustomerService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -24,8 +25,10 @@ public class CustomerController {
     }
 
     @GetMapping("{id}")
-    public Mono<CustomerDto> getCustomerById(@PathVariable Integer id) {
-        return customerService.getCustomerById(id);
+    public Mono<ResponseEntity<CustomerDto>> getCustomerById(@PathVariable Integer id) {
+        return customerService.getCustomerById(id)
+                .map(ResponseEntity::ok)
+                .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 
     @PostMapping
@@ -36,12 +39,18 @@ public class CustomerController {
     }
 
     @PutMapping("{id}")
-    public Mono<CustomerDto> updateCustomer(@PathVariable Integer id, @RequestBody Mono<CustomerDto> customerDtoMono) {
-        return customerService.updateCustomer(id, customerDtoMono);
+    public Mono<ResponseEntity<CustomerDto>> updateCustomer(@PathVariable Integer id,
+                                                            @RequestBody Mono<CustomerDto> customerDtoMono) {
+        return customerService.updateCustomer(id, customerDtoMono)
+                .map(ResponseEntity::ok)
+                .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("{id}")
-    public Mono<Void> deleteCustomer(@PathVariable Integer id) {
-        return customerService.deleteCustomer(id);
+    public Mono<ResponseEntity<Void>> deleteCustomer(@PathVariable Integer id) {
+        return customerService.deleteCustomer(id)
+                .filter(Boolean::booleanValue)
+                .map(deleted -> ResponseEntity.ok().<Void>build())
+                .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 }

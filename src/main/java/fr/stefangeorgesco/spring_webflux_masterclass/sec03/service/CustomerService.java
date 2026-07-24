@@ -42,7 +42,7 @@ public class CustomerService {
                 .map(EntityDtoMapper::toDto);
     }
 
-    public Mono<Void> deleteCustomer(Integer id) {
-        return customerRepository.deleteById(id);
+    public Mono<Boolean> deleteCustomer(Integer id) {
+        return customerRepository.deleteCustomerById(id);
     }
 }
