@@ -121,7 +121,7 @@ class CustomerControllerTest {
                 "updated.customer@example.com");
 
         client.put()
-                .uri("/customers/10")
+                .uri("/customers/1")
                 .bodyValue(updatedCustomer)
                 .exchange()
                 .expectStatus().isOk()
@@ -129,8 +129,39 @@ class CustomerControllerTest {
                 .expectBody()
                 .consumeWith(response ->
                         log.info("Response: {}", new String(Objects.requireNonNull(response.getResponseBody()))))
-                .jsonPath("$.id").isEqualTo(10)
+                .jsonPath("$.id").isEqualTo(1)
                 .jsonPath("$.name").isEqualTo("updated customer")
                 .jsonPath("$.email").isEqualTo("updated.customer@example.com");
+    }
+
+    @Test
+    void testGetCustomerById_notFound() {
+        client.get()
+                .uri("/customers/999")
+                .exchange()
+                .expectStatus().isNotFound()
+                .expectBody().isEmpty();
+    }
+
+    @Test
+    void testUpdateCustomer_notFound() {
+        CustomerDto updatedCustomer = new CustomerDto(null, "updated customer",
+                "updated.customer@example.com");
+
+        client.put()
+                .uri("/customers/999")
+                .bodyValue(updatedCustomer)
+                .exchange()
+                .expectStatus().isNotFound()
+                .expectBody().isEmpty();
+    }
+
+    @Test
+    void testDeleteCustomer_notFound() {
+        client.delete()
+                .uri("/customers/999")
+                .exchange()
+                .expectStatus().isNotFound()
+                .expectBody().isEmpty();
     }
 }

@@ -8,10 +8,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import reactor.test.StepVerifier;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 
+@SuppressWarnings("LoggingSimilarMessage")
 class Lec01CustomerRepositoryTest extends AbstractTest {
 
     private static final Logger log = LoggerFactory.getLogger(Lec01CustomerRepositoryTest.class);
@@ -58,12 +61,24 @@ class Lec01CustomerRepositoryTest extends AbstractTest {
 
     @Test
     void testInsertAndDeleteCustomer() {
+        // count
+        this.customerRepository.count()
+                .doOnNext(count -> log.info("countCustomer: {}", count))
+                .as(StepVerifier::create)
+                .expectNext(10L)
+                .verifyComplete();
+
+        AtomicInteger id = new AtomicInteger();
+
         // insert
         Customer customer = new Customer();
         customer.setName("marshal");
         customer.setEmail("marshal@gmail.com");
         this.customerRepository.save(customer)
-                .doOnNext(savedCustomer -> log.info("insertedCustomer: {}", savedCustomer))
+                .doOnNext(savedCustomer -> {
+                    log.info("insertedCustomer: {}", savedCustomer);
+                    id.set(savedCustomer.getId());
+                })
                 .as(StepVerifier::create)
                 .assertNext(savedCustomer -> assertNotNull(savedCustomer.getId()))
                 .verifyComplete();
@@ -76,7 +91,7 @@ class Lec01CustomerRepositoryTest extends AbstractTest {
                 .verifyComplete();
 
         // delete
-        this.customerRepository.deleteById(11)
+        this.customerRepository.deleteById(id.get())
                 .then(this.customerRepository.count())
                 .as(StepVerifier::create)
                 .expectNext(10L)
