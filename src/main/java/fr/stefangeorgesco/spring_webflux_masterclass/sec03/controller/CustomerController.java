@@ -2,6 +2,9 @@ package fr.stefangeorgesco.spring_webflux_masterclass.sec03.controller;
 
 import fr.stefangeorgesco.spring_webflux_masterclass.sec03.dto.CustomerDto;
 import fr.stefangeorgesco.spring_webflux_masterclass.sec03.service.CustomerService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
@@ -22,6 +25,22 @@ public class CustomerController {
     @GetMapping
     public Flux<CustomerDto> getAllCustomers() {
         return customerService.getAllCustomers();
+    }
+
+    @GetMapping("paginated")
+    public Mono<Page<CustomerDto>> getAllCustomers(@RequestParam(defaultValue = "1") int page,
+                                                   @RequestParam(defaultValue = "5") int size,
+                                                   @RequestParam(defaultValue = "id") String sortBy,
+                                                   @RequestParam(defaultValue = "asc") String sortDir) {
+        return customerService.getAllCustomers(
+                PageRequest.of(
+                        page,
+                        size,
+                        sortDir.equalsIgnoreCase("desc") ?
+                                Sort.by(sortBy).descending() :
+                                Sort.by(sortBy).ascending()
+                )
+        );
     }
 
     @GetMapping("{id}")

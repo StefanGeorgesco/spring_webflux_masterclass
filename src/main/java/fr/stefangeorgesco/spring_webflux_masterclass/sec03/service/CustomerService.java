@@ -3,6 +3,9 @@ package fr.stefangeorgesco.spring_webflux_masterclass.sec03.service;
 import fr.stefangeorgesco.spring_webflux_masterclass.sec03.dto.CustomerDto;
 import fr.stefangeorgesco.spring_webflux_masterclass.sec03.mapper.EntityDtoMapper;
 import fr.stefangeorgesco.spring_webflux_masterclass.sec03.repository.CustomerRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -19,6 +22,14 @@ public class CustomerService {
     public Flux<CustomerDto> getAllCustomers() {
         return customerRepository.findAll()
                 .map(EntityDtoMapper::toDto);
+    }
+
+    public Mono<Page<CustomerDto>> getAllCustomers(PageRequest pageRequest) {
+        return customerRepository.findBy(pageRequest)
+                .map(EntityDtoMapper::toDto)
+                .collectList()
+                .zipWith(this.customerRepository.count())
+                .map(tuple -> new PageImpl<>(tuple.getT1(), pageRequest, tuple.getT2()));
     }
 
     public Mono<CustomerDto> getCustomerById(Integer id) {
