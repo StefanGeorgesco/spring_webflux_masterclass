@@ -1,7 +1,9 @@
 package fr.stefangeorgesco.spring_webflux_masterclass.sec04.controller;
 
 import fr.stefangeorgesco.spring_webflux_masterclass.sec04.dto.CustomerDto;
+import fr.stefangeorgesco.spring_webflux_masterclass.sec04.exception.ApplicationExceptions;
 import fr.stefangeorgesco.spring_webflux_masterclass.sec04.service.CustomerService;
+import fr.stefangeorgesco.spring_webflux_masterclass.sec04.validator.RequestValidator;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -44,32 +46,33 @@ public class CustomerController {
     }
 
     @GetMapping("{id}")
-    public Mono<ResponseEntity<CustomerDto>> getCustomerById(@PathVariable Integer id) {
+    public Mono<CustomerDto> getCustomerById(@PathVariable Integer id) {
         return customerService.getCustomerById(id)
-                .map(ResponseEntity::ok)
-                .defaultIfEmpty(ResponseEntity.notFound().build());
+                .switchIfEmpty(ApplicationExceptions.customerNotFound(id));
     }
 
     @PostMapping
     public Mono<ResponseEntity<CustomerDto>> createCustomer(@RequestBody Mono<CustomerDto> customerDtoMono) {
-        return customerService.createCustomer(customerDtoMono)
+        return customerDtoMono.transform(RequestValidator.validate())
+                .as(customerService::createCustomer)
                 .map(customerDto ->
                         ResponseEntity.created(URI.create("/customers/" + customerDto.id())).body(customerDto));
     }
 
     @PutMapping("{id}")
-    public Mono<ResponseEntity<CustomerDto>> updateCustomer(@PathVariable Integer id,
-                                                            @RequestBody Mono<CustomerDto> customerDtoMono) {
-        return customerService.updateCustomer(id, customerDtoMono)
-                .map(ResponseEntity::ok)
-                .defaultIfEmpty(ResponseEntity.notFound().build());
+    public Mono<CustomerDto> updateCustomer(@PathVariable Integer id,
+                                            @RequestBody Mono<CustomerDto> customerDtoMono) {
+        return customerDtoMono.transform(RequestValidator.validate())
+                .as(validatedCustomerDtoMono ->
+                        customerService.updateCustomer(id, validatedCustomerDtoMono))
+                .switchIfEmpty(ApplicationExceptions.customerNotFound(id));
     }
 
     @DeleteMapping("{id}")
-    public Mono<ResponseEntity<Void>> deleteCustomer(@PathVariable Integer id) {
+    public Mono<Void> deleteCustomer(@PathVariable Integer id) {
         return customerService.deleteCustomer(id)
                 .filter(Boolean::booleanValue)
-                .map(deleted -> ResponseEntity.ok().<Void>build())
-                .defaultIfEmpty(ResponseEntity.notFound().build());
+                .switchIfEmpty(ApplicationExceptions.customerNotFound(id))
+                .then();
     }
 }
