@@ -4,6 +4,8 @@ import fr.stefangeorgesco.spring_webflux_masterclass.sec06.dto.CustomerDto;
 import fr.stefangeorgesco.spring_webflux_masterclass.sec06.exception.ApplicationExceptions;
 import fr.stefangeorgesco.spring_webflux_masterclass.sec06.service.CustomerService;
 import fr.stefangeorgesco.spring_webflux_masterclass.sec06.validator.RequestValidator;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
@@ -22,6 +24,21 @@ public class CustomerRequestHandler {
         return customerService.getAllCustomers()
                 .as(customerDtoFlux ->
                         ServerResponse.ok().body(customerDtoFlux, CustomerDto.class));
+    }
+
+    public Mono<ServerResponse> getPaginatedCustomers(ServerRequest request) {
+        int page = request.queryParam("page").map(Integer::parseInt).orElse(0);
+        int size = request.queryParam("size").map(Integer::parseInt).orElse(5);
+        String sortBy = request.queryParam("sortBy").orElse("id");
+        String sortDir = request.queryParam("sortDir").orElse("asc");
+        var pageRequest = PageRequest.of(
+                page,
+                size,
+                sortDir.equalsIgnoreCase("desc") ?
+                        Sort.by(sortBy).descending() :
+                        Sort.by(sortBy).ascending()
+        );
+        return customerService.getAllCustomers(pageRequest).flatMap(ServerResponse.ok()::bodyValue);
     }
 
     public Mono<ServerResponse> getCustomerById(ServerRequest request) {

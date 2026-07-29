@@ -1,5 +1,7 @@
 package fr.stefangeorgesco.spring_webflux_masterclass.sec06.config;
 
+import fr.stefangeorgesco.spring_webflux_masterclass.sec06.exception.CustomerNotFoundException;
+import fr.stefangeorgesco.spring_webflux_masterclass.sec06.exception.InvalidInputException;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.reactive.function.server.RouterFunction;
@@ -9,20 +11,25 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 @Configuration
 public class RouterConfiguration {
 
-    private final CustomerRequestHandler customerRequestHandler;
+    private final CustomerRequestHandler requestHandler;
+    private final ApplicationExceptionHandler exceptionHandler;
 
-    public RouterConfiguration(CustomerRequestHandler customerRequestHandler) {
-        this.customerRequestHandler = customerRequestHandler;
+    public RouterConfiguration(CustomerRequestHandler requestHandler, ApplicationExceptionHandler exceptionHandler) {
+        this.requestHandler = requestHandler;
+        this.exceptionHandler = exceptionHandler;
     }
 
     @Bean
     public RouterFunction<ServerResponse> customerRoutes() {
         return RouterFunctions.route()
-                .GET("customers", customerRequestHandler::getAllCustomers)
-                .GET("customers/{id}", customerRequestHandler::getCustomerById)
-                .POST("customers", customerRequestHandler::createCustomer)
-                .PUT("customers/{id}", customerRequestHandler::updateCustomer)
-                .DELETE("customers/{id}", customerRequestHandler::deleteCustomer)
+                .GET("customers", requestHandler::getAllCustomers)
+                .GET("customers/paginated", requestHandler::getPaginatedCustomers)
+                .GET("customers/{id}", requestHandler::getCustomerById)
+                .POST("customers", requestHandler::createCustomer)
+                .PUT("customers/{id}", requestHandler::updateCustomer)
+                .DELETE("customers/{id}", requestHandler::deleteCustomer)
+                .onError(CustomerNotFoundException.class, exceptionHandler::handleException)
+                .onError(InvalidInputException.class, exceptionHandler::handleException)
                 .build();
     }
 }
