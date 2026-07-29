@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webtestclient.autoconfigure.AutoConfigureWebTestClient;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
@@ -24,6 +25,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class CustomerControllerTest {
 
     private static final Logger log = LoggerFactory.getLogger(CustomerControllerTest.class);
+    private static final String STANDARD_USER_TOKEN = "secret123";
+    private static final String PRIME_USER_TOKEN = "secret456";
 
     @Autowired
     private WebTestClient client;
@@ -31,10 +34,13 @@ class CustomerControllerTest {
     @Autowired
     private CustomerRepository customerRepository;
 
+    // happy path tests
+
     @Test
     void testAllCustomers() {
         client.get()
                 .uri("/customers")
+                .header("Authorization", "Bearer " + STANDARD_USER_TOKEN)
                 .exchange()
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
@@ -47,6 +53,7 @@ class CustomerControllerTest {
     void testAllCustomers_paginated() {
         client.get()
                 .uri("/customers/paginated?page=1&size=3&sortBy=name&sortDir=desc")
+                .header("Authorization", "Bearer " + STANDARD_USER_TOKEN)
                 .exchange()
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
@@ -67,6 +74,7 @@ class CustomerControllerTest {
     void testGetCustomerById() {
         client.get()
                 .uri("/customers/3")
+                .header("Authorization", "Bearer " + STANDARD_USER_TOKEN)
                 .exchange()
                 .expectStatus().isOk()
                 .expectHeader().contentType(MediaType.APPLICATION_JSON)
@@ -89,6 +97,7 @@ class CustomerControllerTest {
         // create customer
         client.post()
                 .uri("/customers")
+                .header("Authorization", "Bearer " + PRIME_USER_TOKEN)
                 .bodyValue(newCustomer)
                 .exchange()
                 .expectStatus().isCreated()
@@ -107,6 +116,7 @@ class CustomerControllerTest {
         // delete customer
         client.delete()
                 .uri("/customers/" + id.get())
+                .header("Authorization", "Bearer " + PRIME_USER_TOKEN)
                 .exchange()
                 .expectStatus().isOk()
                 .expectBody()
@@ -122,6 +132,7 @@ class CustomerControllerTest {
 
         client.put()
                 .uri("/customers/1")
+                .header("Authorization", "Bearer " + PRIME_USER_TOKEN)
                 .bodyValue(updatedCustomer)
                 .exchange()
                 .expectStatus().isOk()
@@ -134,10 +145,13 @@ class CustomerControllerTest {
                 .jsonPath("$.email").isEqualTo("updated.customer@example.com");
     }
 
+    // not found error tests
+
     @Test
     void testGetCustomerById_notFound() {
         client.get()
                 .uri("/customers/999")
+                .header("Authorization", "Bearer " + STANDARD_USER_TOKEN)
                 .exchange()
                 .expectStatus().isNotFound()
                 .expectBody()
@@ -151,6 +165,7 @@ class CustomerControllerTest {
 
         client.put()
                 .uri("/customers/999")
+                .header("Authorization", "Bearer " + PRIME_USER_TOKEN)
                 .bodyValue(updatedCustomer)
                 .exchange()
                 .expectStatus().isNotFound()
@@ -162,11 +177,14 @@ class CustomerControllerTest {
     void testDeleteCustomer_notFound() {
         client.delete()
                 .uri("/customers/999")
+                .header("Authorization", "Bearer " + PRIME_USER_TOKEN)
                 .exchange()
                 .expectStatus().isNotFound()
                 .expectBody()
                 .jsonPath("$.detail").isEqualTo("Customer [id=999] is not found");
     }
+
+    // validation error tests
 
     @Test
     void testCreateCustomer_noNameValidationError() {
@@ -174,6 +192,7 @@ class CustomerControllerTest {
 
         client.post()
                 .uri("/customers")
+                .header("Authorization", "Bearer " + PRIME_USER_TOKEN)
                 .bodyValue(newCustomer)
                 .exchange()
                 .expectStatus().isBadRequest()
@@ -187,6 +206,7 @@ class CustomerControllerTest {
 
         client.post()
                 .uri("/customers")
+                .header("Authorization", "Bearer " + PRIME_USER_TOKEN)
                 .bodyValue(newCustomer)
                 .exchange()
                 .expectStatus().isBadRequest()
@@ -200,6 +220,7 @@ class CustomerControllerTest {
 
         client.post()
                 .uri("/customers")
+                .header("Authorization", "Bearer " + PRIME_USER_TOKEN)
                 .bodyValue(newCustomer)
                 .exchange()
                 .expectStatus().isBadRequest()
@@ -213,6 +234,7 @@ class CustomerControllerTest {
 
         client.post()
                 .uri("/customers")
+                .header("Authorization", "Bearer " + PRIME_USER_TOKEN)
                 .bodyValue(newCustomer)
                 .exchange()
                 .expectStatus().isBadRequest()
@@ -226,6 +248,7 @@ class CustomerControllerTest {
 
         client.post()
                 .uri("/customers")
+                .header("Authorization", "Bearer " + PRIME_USER_TOKEN)
                 .bodyValue(newCustomer)
                 .exchange()
                 .expectStatus().isBadRequest()
@@ -239,6 +262,7 @@ class CustomerControllerTest {
 
         client.put()
                 .uri("/customers/1")
+                .header("Authorization", "Bearer " + PRIME_USER_TOKEN)
                 .bodyValue(updatedCustomer)
                 .exchange()
                 .expectStatus().isBadRequest()
@@ -252,6 +276,7 @@ class CustomerControllerTest {
 
         client.put()
                 .uri("/customers/1")
+                .header("Authorization", "Bearer " + PRIME_USER_TOKEN)
                 .bodyValue(updatedCustomer)
                 .exchange()
                 .expectStatus().isBadRequest()
@@ -265,6 +290,7 @@ class CustomerControllerTest {
 
         client.put()
                 .uri("/customers/1")
+                .header("Authorization", "Bearer " + PRIME_USER_TOKEN)
                 .bodyValue(updatedCustomer)
                 .exchange()
                 .expectStatus().isBadRequest()
@@ -278,6 +304,7 @@ class CustomerControllerTest {
 
         client.put()
                 .uri("/customers/1")
+                .header("Authorization", "Bearer " + PRIME_USER_TOKEN)
                 .bodyValue(updatedCustomer)
                 .exchange()
                 .expectStatus().isBadRequest()
@@ -291,10 +318,59 @@ class CustomerControllerTest {
 
         client.put()
                 .uri("/customers/1")
+                .header("Authorization", "Bearer " + PRIME_USER_TOKEN)
                 .bodyValue(updatedCustomer)
                 .exchange()
                 .expectStatus().isBadRequest()
                 .expectBody()
                 .jsonPath("$.detail").isEqualTo("Valid email is required");
+    }
+
+    // authentication and authorization tests
+
+    @Test
+    void unauthorized() {
+        // no token
+        client.get()
+                .uri("/customers")
+                .exchange()
+                .expectStatus().isEqualTo(HttpStatus.UNAUTHORIZED);
+
+        // invalid token
+        validateGet("invalid-token", HttpStatus.UNAUTHORIZED);
+    }
+
+    @Test
+    void standardCategory() {
+        validateGet(STANDARD_USER_TOKEN, HttpStatus.OK);
+        validatePost(STANDARD_USER_TOKEN, HttpStatus.FORBIDDEN);
+    }
+
+    @Test
+    void primeCategory() {
+        validateGet(PRIME_USER_TOKEN, HttpStatus.OK);
+        validatePost(PRIME_USER_TOKEN, HttpStatus.CREATED);
+    }
+
+    /*
+        Helper methods
+     */
+
+    private void validateGet(String token, HttpStatus expectedStatus) {
+        client.get()
+                .uri("/customers/3")
+                .header("Authorization", "Bearer " + token)
+                .exchange()
+                .expectStatus().isEqualTo(expectedStatus);
+    }
+
+    private void validatePost(String token, HttpStatus expectedStatus) {
+        fr.stefangeorgesco.spring_webflux_masterclass.sec05.dto.CustomerDto newCustomer = new fr.stefangeorgesco.spring_webflux_masterclass.sec05.dto.CustomerDto(null, "new customer", "new.customer@example.com");
+        client.post()
+                .uri("/customers")
+                .bodyValue(newCustomer)
+                .header("Authorization", "Bearer " + token)
+                .exchange()
+                .expectStatus().isEqualTo(expectedStatus);
     }
 }
