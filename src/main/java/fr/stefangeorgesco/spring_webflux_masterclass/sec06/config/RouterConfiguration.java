@@ -20,16 +20,22 @@ public class RouterConfiguration {
     }
 
     @Bean
-    public RouterFunction<ServerResponse> customerRoutes() {
+    public RouterFunction<ServerResponse> routes() {
         return RouterFunctions.route()
-                .GET("customers", requestHandler::getAllCustomers)
-                .GET("customers/paginated", requestHandler::getPaginatedCustomers)
-                .GET("customers/{id}", requestHandler::getCustomerById)
-                .POST("customers", requestHandler::createCustomer)
-                .PUT("customers/{id}", requestHandler::updateCustomer)
-                .DELETE("customers/{id}", requestHandler::deleteCustomer)
-                .onError(CustomerNotFoundException.class, exceptionHandler::handleException)
+                .path("customers", this::customerRoutes)
                 .onError(InvalidInputException.class, exceptionHandler::handleException)
+                .build();
+    }
+
+    private RouterFunction<ServerResponse> customerRoutes() {
+        return RouterFunctions.route()
+                .GET("/paginated", requestHandler::getPaginatedCustomers)
+                .GET("/{id}", requestHandler::getCustomerById)
+                .GET(requestHandler::getAllCustomers)
+                .POST(requestHandler::createCustomer)
+                .PUT("/{id}", requestHandler::updateCustomer)
+                .DELETE("/{id}", requestHandler::deleteCustomer)
+                .onError(CustomerNotFoundException.class, exceptionHandler::handleException)
                 .build();
     }
 }
