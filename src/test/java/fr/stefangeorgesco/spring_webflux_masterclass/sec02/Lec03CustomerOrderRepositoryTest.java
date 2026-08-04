@@ -19,7 +19,7 @@ class Lec03CustomerOrderRepositoryTest extends AbstractTest {
     @Test
     void testGetProductsOrderedByCustomer() {
         this.customerOrderRepository.getProductsOrderedByCustomer("mike")
-                .doOnNext(product -> log.info("Product ordered by sam: {}", product))
+                .doOnNext(product -> log.info("ProductDto ordered by sam: {}", product))
                 .map(Product::getDescription)
                 .as(StepVerifier::create)
                 .expectNext("iphone 20", "mac pro")

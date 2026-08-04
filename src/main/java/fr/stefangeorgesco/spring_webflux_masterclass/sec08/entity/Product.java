@@ -1,4 +1,4 @@
-package fr.stefangeorgesco.spring_webflux_masterclass.sec02.entity;
+package fr.stefangeorgesco.spring_webflux_masterclass.sec08.entity;
 
 import org.springframework.data.annotation.Id;
 
@@ -10,8 +10,8 @@ public class Product {
 
     @Id
     private Integer id;
-    String description;
-    Integer price;
+    private String description;
+    private Integer price;
 
     public Integer getId() {
         return id;
@@ -39,7 +39,7 @@ public class Product {
 
     @Override
     public String toString() {
-        return "ProductDto{" +
+        return "Product{" +
                 "id=" + id +
                 ", description='" + description + '\'' +
                 ", price=" + price +

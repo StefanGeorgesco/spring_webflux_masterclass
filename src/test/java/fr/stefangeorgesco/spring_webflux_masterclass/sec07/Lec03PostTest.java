@@ -14,7 +14,7 @@ class Lec03PostTest extends AbstractWebClient {
 
     @Test
     void postBodyValue() {
-        var product = new Product(null, "Product 1", 100);
+        var product = new Product(null, "ProductDto 1", 100);
 
         client.post()
                 .uri("/lec03/product")
@@ -30,7 +30,7 @@ class Lec03PostTest extends AbstractWebClient {
 
     @Test
     void postBody() {
-        var productMono = Mono.fromSupplier(() -> new Product(null, "Product 1", 100))
+        var productMono = Mono.fromSupplier(() -> new Product(null, "ProductDto 1", 100))
                 .delayElement(Duration.ofSeconds(1));
 
         client.post()

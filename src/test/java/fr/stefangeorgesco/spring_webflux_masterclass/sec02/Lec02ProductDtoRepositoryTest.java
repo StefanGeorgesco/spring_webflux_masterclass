@@ -10,9 +10,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import reactor.test.StepVerifier;
 
-class Lec02ProductRepositoryTest extends AbstractTest {
+class Lec02ProductDtoRepositoryTest extends AbstractTest {
 
-    private static final Logger log = LoggerFactory.getLogger(Lec02ProductRepositoryTest.class);
+    private static final Logger log = LoggerFactory.getLogger(Lec02ProductDtoRepositoryTest.class);
 
     @Autowired
     private ProductRepository productRepository;
