@@ -25,6 +25,7 @@ class Lec09ExchangeFilterTest extends AbstractWebClient {
         for (int i = 1; i <= 5; i++) {
             client.get()
                     .uri("/lec09/product/{id}", i)
+                    .attribute("enable-logging", i % 2 == 1)
                     .retrieve()
                     .bodyToMono(Product.class)
                     .doOnNext(print())
@@ -48,7 +49,10 @@ class Lec09ExchangeFilterTest extends AbstractWebClient {
 
     private ExchangeFilterFunction logRequest() {
         return (request, next) -> {
-            log.info("Request: {} {}", request.method(), request.url());
+            var isEnabled = (Boolean) request.attributes().getOrDefault("enable-logging", false);
+            if (isEnabled) {
+                log.info("Request: {} {}", request.method(), request.url());
+            }
             return next.exchange(request);
         };
     }
